@@ -3,9 +3,10 @@ package cosmos
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/codec"
-	types3 "github.com/tendermint/tendermint/abci/types"
 	"log"
+
+	types3 "github.com/cometbft/cometbft/abci/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	types2 "github.com/cosmos/cosmos-sdk/types"
 	sign "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -13,7 +14,7 @@ import (
 	watcher "github.com/mapofzones/cosmos-watcher/pkg/types"
 )
 
-func txToMessage(tx types2.Tx, hash string, errCode uint32, txResult *types3.ResponseDeliverTx, signTx sign.Tx) (watcher.Message, error) {
+func txToMessage(tx types2.Tx, hash string, errCode uint32, txResult *types3.ExecTxResult, signTx sign.Tx) (watcher.Message, error) {
 	Tx := watcher.Transaction{
 		Hash:     hash,
 		Accepted: errCode == 0,

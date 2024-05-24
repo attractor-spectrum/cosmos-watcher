@@ -11,7 +11,7 @@ import (
 	cosmostypes "github.com/cosmos/cosmos-sdk/types"
 	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
 	ibcclients "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
-	impactapp "github.com/ixofoundation/ixo-blockchain/app"
+	impactapp "github.com/ixofoundation/ixo-blockchain/v3/app"
 )
 
 const (

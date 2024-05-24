@@ -1,15 +1,16 @@
 package cosmos
 
 import (
+	"testing"
+
+	types6 "github.com/cometbft/cometbft/abci/types"
 	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
 	"github.com/stretchr/testify/assert"
-	types6 "github.com/tendermint/tendermint/abci/types"
-	"testing"
 )
 
 func TestParseIDsFromResults(t *testing.T) {
 	type args struct {
-		txResult       *types6.ResponseDeliverTx
+		txResult       *types6.ExecTxResult
 		expectedEvents []string
 		attributeKeys  []string
 	}
@@ -31,7 +32,7 @@ func TestParseIDsFromResults(t *testing.T) {
 		{
 			"empty_arg_tx_result",
 			args{
-				&types6.ResponseDeliverTx{},
+				&types6.ExecTxResult{},
 				[]string{connectiontypes.EventTypeConnectionOpenInit},
 				[]string{connectiontypes.AttributeKeyConnectionID},
 			},
@@ -40,10 +41,16 @@ func TestParseIDsFromResults(t *testing.T) {
 		{
 			"single_result_id",
 			args{
-				&types6.ResponseDeliverTx{Events: []types6.Event{{
-					connectiontypes.EventTypeConnectionOpenInit,
-					[]types6.EventAttribute{{[]byte(connectiontypes.AttributeKeyConnectionID), []byte("myConnectionID"), true}},
-				}}},
+				&types6.ExecTxResult{
+					Events: []types6.Event{{
+						Type: connectiontypes.EventTypeConnectionOpenInit,
+						Attributes: []types6.EventAttribute{{
+							Key:   connectiontypes.AttributeKeyConnectionID,
+							Value: "myConnectionID",
+							Index: true,
+						}},
+					}},
+				},
 				[]string{connectiontypes.EventTypeConnectionOpenInit},
 				[]string{connectiontypes.AttributeKeyConnectionID},
 			},
@@ -52,24 +59,40 @@ func TestParseIDsFromResults(t *testing.T) {
 		{
 			"multiple_result_id",
 			args{
-				&types6.ResponseDeliverTx{Events: []types6.Event{
-					{
-						connectiontypes.EventTypeConnectionOpenInit,
-						[]types6.EventAttribute{
-							{[]byte(connectiontypes.AttributeKeyConnectionID), []byte("myConnectionID"), true},
-							{[]byte(connectiontypes.AttributeKeyClientID), []byte("myClientID"), true},
+				&types6.ExecTxResult{
+					Events: []types6.Event{
+						{
+							Type: connectiontypes.EventTypeConnectionOpenInit,
+							Attributes: []types6.EventAttribute{
+								{
+									Key:   connectiontypes.AttributeKeyConnectionID,
+									Value: "myConnectionID",
+									Index: true,
+								},
+								{
+									Key:   connectiontypes.AttributeKeyClientID,
+									Value: "myClientID",
+									Index: true,
+								},
+							},
+						},
+						{
+							Type: connectiontypes.EventTypeConnectionOpenTry,
+							Attributes: []types6.EventAttribute{
+								{
+									Key:   connectiontypes.AttributeKeyCounterpartyClientID,
+									Value: "myCounterpartyClientID",
+									Index: true,
+								},
+								{
+									Key:   connectiontypes.AttributeKeyCounterpartyConnectionID,
+									Value: "myCounterpartyConnectionID",
+									Index: true,
+								},
+							},
 						},
 					},
-					{
-						connectiontypes.EventTypeConnectionOpenTry,
-						[]types6.EventAttribute{
-							{[]byte(connectiontypes.AttributeKeyCounterpartyClientID), []byte("myCounterpartyClientID"), true},
-							{[]byte(connectiontypes.AttributeKeyCounterpartyConnectionID), []byte("myCounterpartyConnectionID"), true},
-						},
-					},
-				}},
-				[]string{connectiontypes.EventTypeConnectionOpenInit, connectiontypes.EventTypeConnectionOpenTry},
-				[]string{connectiontypes.AttributeKeyConnectionID, connectiontypes.AttributeKeyCounterpartyConnectionID},
+				}, []string{connectiontypes.EventTypeConnectionOpenInit, connectiontypes.EventTypeConnectionOpenTry}, []string{connectiontypes.AttributeKeyConnectionID, connectiontypes.AttributeKeyCounterpartyConnectionID},
 			},
 			[]string{"myConnectionID", "myCounterpartyConnectionID"},
 		},

@@ -3,8 +3,9 @@ package cosmos
 import (
 	"encoding/json"
 	"errors"
-	types6 "github.com/tendermint/tendermint/abci/types"
 	"math/big"
+
+	types6 "github.com/cometbft/cometbft/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -16,8 +17,9 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v4/modules/light-clients/06-solomachine/types"
 	types7 "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 
-	watcher "github.com/mapofzones/cosmos-watcher/pkg/types"
 	"log"
+
+	watcher "github.com/mapofzones/cosmos-watcher/pkg/types"
 )
 
 type attributeFiler struct {
@@ -25,7 +27,7 @@ type attributeFiler struct {
 	value string
 }
 
-func parseMsg(msg sdk.Msg, txResult *types6.ResponseDeliverTx, errCode uint32) ([]watcher.Message, error) {
+func parseMsg(msg sdk.Msg, txResult *types6.ExecTxResult, errCode uint32) ([]watcher.Message, error) {
 	log.Println("parseMsg")
 	switch msg := msg.(type) {
 
@@ -214,7 +216,7 @@ func parseMsg(msg sdk.Msg, txResult *types6.ResponseDeliverTx, errCode uint32) (
 	return []watcher.Message{}, nil
 }
 
-func ParseClientIDFromResults(txResult *types6.ResponseDeliverTx, clientId string) string {
+func ParseClientIDFromResults(txResult *types6.ExecTxResult, clientId string) string {
 	if txResult != nil {
 		for _, event := range txResult.Events {
 			if event.Type == clienttypes.EventTypeCreateClient {
@@ -230,7 +232,7 @@ func ParseClientIDFromResults(txResult *types6.ResponseDeliverTx, clientId strin
 	return clientId
 }
 
-func ParseIDsFromResults(txResult *types6.ResponseDeliverTx, expectedEvents []string, attributeKeys []string, attrFiler1 attributeFiler, attrFiler2 attributeFiler, attrFiler3 attributeFiler, attrFiler4 attributeFiler) []string {
+func ParseIDsFromResults(txResult *types6.ExecTxResult, expectedEvents []string, attributeKeys []string, attrFiler1 attributeFiler, attrFiler2 attributeFiler, attrFiler3 attributeFiler, attrFiler4 attributeFiler) []string {
 	var attributesValues []string
 	if txResult != nil {
 		for _, event := range txResult.Events {
