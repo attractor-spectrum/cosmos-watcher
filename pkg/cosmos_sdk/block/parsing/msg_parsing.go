@@ -3,6 +3,8 @@ package cosmos
 import (
 	"encoding/json"
 	"errors"
+	"math/big"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
@@ -12,10 +14,10 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v2/modules/light-clients/06-solomachine/types"
 	types7 "github.com/cosmos/ibc-go/v2/modules/light-clients/07-tendermint/types"
 	types6 "github.com/tendermint/tendermint/abci/types"
-	"math/big"
+
+	"log"
 
 	watcher "github.com/mapofzones/cosmos-watcher/pkg/types"
-	"log"
 )
 
 type attributeFiler struct {
@@ -184,6 +186,12 @@ func parseMsg(msg sdk.Msg, txResult *types6.ResponseDeliverTx, errCode uint32) (
 		if err != nil {
 			return nil, err
 		}
+
+		// when multiple relayer are trying to relay the same packet, we need to check if the packet is already relayed
+		if !IsAcceptedPackRec(txResult) {
+			break
+		}
+
 		return []watcher.Message{
 			watcher.IBCTransfer{
 				ChannelID: msg.Packet.DestinationChannel,
@@ -196,6 +204,17 @@ func parseMsg(msg sdk.Msg, txResult *types6.ResponseDeliverTx, errCode uint32) (
 	}
 
 	return []watcher.Message{}, nil
+}
+
+func IsAcceptedPackRec(txResult *types6.ResponseDeliverTx) bool {
+	if txResult != nil {
+		for _, event := range txResult.Events {
+			if event.Type == "fungible_token_packet" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func ParseClientIDFromResults(txResult *types6.ResponseDeliverTx, clientId string) string {
